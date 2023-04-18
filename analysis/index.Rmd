@@ -8,4 +8,6 @@ editor_options:
   chunk_output_type: console
 ---
 
-Welcome to my research website.
+Work packages of the ATractiB study:
+
+* [QA of tumor assessments prior to ESMO 2023](WP1_QA_tumor-assessments_2023-04-18.html)
