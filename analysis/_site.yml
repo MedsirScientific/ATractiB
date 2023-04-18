@@ -1,7 +1,7 @@
-name: "ATractiB"
+name: ATractiB
 output_dir: ../docs
 navbar:
-  title: "ATractiB"
+  title: ATractiB
   left:
   - text: Home
     href: index.html
@@ -9,6 +9,10 @@ navbar:
     href: about.html
   - text: License
     href: license.html
+  right:
+  - icon: fab fa-github
+    text: Source code
+    href: https://github.com/danalclop/ATractiB
 output:
   workflowr::wflow_html:
     toc: yes
