@@ -1,0 +1,789 @@
+---
+title: "ATractiB | QA of tumor assessments prior to ESMO 2023"
+author: "Daniel Alcala"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+output: html_document
+---
+
+```{r setup, include = FALSE}
+library(tidyverse)
+library(readxl)
+library(writexl)
+library(janitor)
+library(lubridate)
+library(here)
+library(cowplot)
+
+here("WP1_QA_tumor-assessments_2023-04-18.Rmd")
+```
+
+This report presents the cleaning of tumour assessment data from the ATractiB study. The ultimate goal is to obtain the number of patients who have experienced radiologically confirmed disease progression. However, the purpose of this preliminary analysis of radiological progressions is to detect anomalies or discrepancies in the tumour assessment data collected.
+
+Raw data from the eCRF was downloaded as of 2023-04-18 to perform these analyses.
+
+# Patient IDs (ITT population)
+
+First, we will obtain a list with the identifying codes of the patients included in the Intention-to-Treat (ITT) population.
+
+One patient (119-005) was initially included in the study but did not receive any doses of study treatment. Therefore, instead of using the data from the Screening sheet, we will use the medication intake sheet (Cycles) to obtain the list of patients included in the ITT:
+
+```{r, message = FALSE, warning = FALSE}
+data_00_patient_ids <- read_excel(
+  here("data/ATRACTIB_Cycles_2023_04_18.xlsx"),
+    sheet = "Cycles",
+    skip = 1) %>% 
+    clean_names() %>% 
+  # Extract data only from patients who took the study medication on C1D1.
+  filter(
+    event_num == 1,
+    day_1_study_treatment_administered_atezolizumab_paclitaxel_and_or_bevacizumab == "Yes"
+    ) %>% 
+  select(patient)
+
+rmarkdown::paged_table(data_00_patient_ids)
+```
+
+# Measurable lesions at baseline
+
+Data from tumour assessments need to be pulled from two different sources. On the one hand, we have the baseline tumour assessment included in the Screening sheet. On the other hand, we have the tumour assessment sheet itself, which collects all post-baseline assessments.
+
+In addition, not all patients had measurable lesions at baseline. Therefore, we need to collect data for both types of lesions. First, we extracted data from patients with measurable lesions at baseline:
+
+```{r}
+data_01a_baseline_target <- read_excel(
+    here("data/ATRACTIB_ICF Screening_2023_04_18.xlsx"),
+    sheet = "TARGET",
+    skip = 1) %>% 
+    clean_names() %>% 
+    # The variable "event_num" encodes the tumour assessment number in the post-baseline assessments.
+    # Create this variable and assign a 0 to mark this as the baseline assessment.
+    mutate(
+      event_num = 0
+    ) %>%
+    group_by(patient, event_num) %>%
+    # We collect the length of the longest diameter of each reported target (i.e., measurable) lesion individually.
+    # Calculate the sum of longest diameter of all lesions.
+    mutate(
+      sum_of_lesions = sum(longest_diameter_short_axis_mm)
+    ) %>%
+    # Since we now have the sum of longest diameters repeated as many times as there are measurable lesions, we can keep either any row
+    group_by(patient) %>%
+    filter(row_number() == 1) %>%
+    mutate(
+      evaluation_date = dmy(evaluation_date)
+    ) %>% 
+    # Create a dummy variable to code that the patient had measurable disease at baseline.
+    mutate(
+      baseline_target = 0
+    ) %>% 
+    select(
+        patient, event_num, baseline_target, evaluation_date, longest_diameter_short_axis_mm, sum_of_lesions
+        )
+
+rmarkdown::paged_table(data_01a_baseline_target)
+```
+
+# Non-measurable lesions at baseline
+
+We then extract data from patients who had non-measurable lesions at baseline:
+
+```{r}
+data_01b_baseline_nontarget <- read_excel(
+    here("data/ATRACTIB_ICF Screening_2023_04_18.xlsx"),
+    sheet = "NON_TARGET",
+    skip = 1) %>% 
+    clean_names() %>% 
+    # The variable "event_num" encodes the tumour assessment number in the post-baseline assessments.
+    # Create this variable and assign a 0 to mark this as the baseline assessment.
+    mutate(
+      event_num = 0
+    ) %>%
+    # Since we only care about the number of patients with non-measurable disease at baseline, we can keep either any row
+    group_by(patient) %>%
+    filter(row_number() == 1) %>%
+    mutate(
+      evaluation_date = dmy(evaluation_date)
+    ) %>% 
+    filter(
+      non_target_lesion == "Yes"
+    ) %>% 
+    select(
+      patient, event_num, evaluation_date
+    )
+
+rmarkdown::paged_table(data_01b_baseline_nontarget)
+```
+
+# Baseline tumour assessment
+
+Finally, we merge both datasets to generate a single list that states for each patient whether they had measurable lesions or non-measurable lesions only at baseline:
+
+```{r}
+data_01_baseline_all <- full_join(
+  data_01a_baseline_target,
+  data_01b_baseline_nontarget,
+  by = c("patient", "event_num")
+  ) %>%
+  # If a patient had measurable lesions at baseline, we want to keep that data.
+  # Only if there were no measurable lesions, we want to keep the tumour assessment date when the non-measurable lesions were detected.
+  mutate(
+    evaluation_date = if_else(
+      is.na(evaluation_date.x), evaluation_date.y, evaluation_date.x
+    )
+  ) %>%
+  # The following mutate() function creates a "baseline_nontarget" variable that codes 0 if the patient had no measurable lesions at baseline.
+  mutate(
+    baseline_nontarget = if_else(is.na(baseline_target) == 0, 1, 0),
+    baseline_nontarget = na_if(baseline_nontarget, 1)
+  ) %>% 
+  select(
+    patient, event_num, evaluation_date, baseline_target, sum_of_lesions, baseline_nontarget
+  )
+
+# Finally, filter the results of the Screening tumour assessments with the list of patients included in the ITT population.
+data_01_baseline_all <- merge(
+  data_00_patient_ids,
+  data_01_baseline_all,
+  by = "patient",
+  all = FALSE
+)
+
+rmarkdown::paged_table(data_01_baseline_all)
+```
+
+# Measurable lesions post-baseline
+
+Next, we extract the results of the post-baseline tumour assessments:
+
+```{r}
+data_02a_postbaseline_target <- read_excel(
+    here("data/ATRACTIB_Tumor Assessment_2023_04_18.xlsx"),
+    sheet = "TARGET",
+    skip = 1) %>% 
+    clean_names() %>%
+    # We collect the length of the longest diameter of each reported target (i.e., measurable) lesion individually.
+    # Calculate the sum of longest diameter of all lesions for each tumour assessment.
+    group_by(patient, event_num) %>%
+    mutate(
+      sum_of_lesions = sum(longest_diameter_short_axis_mm)
+    ) %>%
+    # Since we now have the sum of longest diameters repeated as many times as there are measurable lesions, we can keep either any row
+    group_by(patient, event_num) %>%
+    filter(row_number() == 1) %>%
+    mutate(
+      evaluation_date = dmy(evaluation_date)
+    ) %>% 
+    select(
+      patient, event_num, evaluation_date, sum_of_lesions
+    )
+
+rmarkdown::paged_table(data_02a_postbaseline_target)
+```
+
+# Non-measurable lesions post-baseline
+
+```{r}
+data_02b_postbaseline_nontarget <- read_excel(
+    here("data/ATRACTIB_Tumor Assessment_2023_04_18.xlsx"),
+    sheet = "NON_TARGET",
+    skip = 1) %>% 
+    clean_names() %>%
+    # Since we now have the sum of longest diameters repeated as many times as there are measurable lesions, we can keep either any row
+    group_by(patient, event_num) %>%
+    filter(row_number() == 1) %>%
+    mutate(
+      evaluation_date = dmy(evaluation_date)
+    ) %>% 
+    select(
+      patient, event_num, evaluation_date
+    )
+
+rmarkdown::paged_table(data_02b_postbaseline_nontarget)
+```
+
+# Post-baseline tumour assessments
+
+```{r}
+data_02_postbaseline <- merge(
+  data_02a_postbaseline_target,
+  data_02b_postbaseline_nontarget,
+  by = c("patient", "event_num", "evaluation_date"),
+  all = TRUE
+)
+
+rmarkdown::paged_table(data_02_postbaseline)
+```
+
+# New lesions detected in post-baseline tumour assessments
+
+For a complete account of the data, we need to extract also the occurrence of new lesions from another sheet of the file with the post-baseline tumour assessments:
+
+```{r}
+data_03_new_lesions <- read_excel(
+    here("data/ATRACTIB_Tumor Assessment_2023_04_18.xlsx"),
+    sheet = "NEW_LESIONS",
+    skip = 1) %>% 
+    clean_names() %>% 
+    # Create a new variable that encodes whether the patient had a new lesion at any tumour assessment
+    mutate(
+      new_lesions = "Yes"
+    ) %>% 
+    mutate(
+      evaluation_date = dmy(evaluation_date)
+    ) %>% 
+    # Since the presentation of a single new lesion already implies disease progression, we only keep the record of one new lesion, regardless of which one.
+    group_by(patient) %>%
+    filter(row_number() == 1) %>% 
+    select(
+      patient, event_num, evaluation_date, new_lesions
+    )
+
+rmarkdown::paged_table(data_03_new_lesions)
+```
+
+# Overall Response in post-baseline tumour assessments by RECIST v.1.1.
+
+We want to incorporate the overall response according to RECIST v.1.1 in each tumour assessment into the final dataset:
+
+```{r}
+data_04a_recist <- read_excel(
+    here("data/ATRACTIB_Tumor Assessment_2023_04_18.xlsx"),
+    sheet = "Tumor Assessment",
+    skip = 1) %>% 
+    clean_names() %>% 
+    select(
+      patient, event_num, target_lesions_response, non_target_lesions_response, recist_overall_response
+      )
+
+rmarkdown::paged_table(data_04a_recist)
+```
+
+# Overall Response in post-baseline tumour assessments by (immune) iRECIST.
+
+Since the study treatment includes immunotherapy, we also need to take into account the assessment by (immune) iRECIST:
+
+```{r}
+data_04b_irecist <- read_excel(
+    here("data/ATRACTIB_Tumor Assessment_2023_04_18.xlsx"),
+    sheet = "Tumor Assessment",
+    skip = 1) %>% 
+    clean_names() %>% 
+    select(
+      patient, event_num, target_lesions_response, non_target_lesions_response, recist_overall_response,
+      is_the_patient_clinically_stable_and_will_benefit_from_continued_treatment, ir_recist_overall_response,
+      does_the_patient_continue_to_be_clinically_stable
+      )
+
+rmarkdown::paged_table(data_04b_irecist)
+```
+
+# Final analysis dataset
+
+We construct the analysis dataset to assess the quality of the data from the tumour assessments and the overall response assessment using RECIST v.1.1:
+
+```{r}
+data_05_or_recist <- merge(
+    data_01_baseline_all,
+    data_02_postbaseline,
+    by = c("patient", "event_num", "evaluation_date","sum_of_lesions"),
+    all = TRUE
+    ) %>% 
+    # We create a new variable with the sum of lesion diameters at baseline to later calculate the change from baseline.
+    group_by(patient) %>%
+    mutate(
+      baseline_sld = sum_of_lesions[event_num == 0]
+      ) %>%
+    mutate(
+      change_from_baseline = sum_of_lesions - baseline_sld
+    ) %>%
+    mutate(
+      percent_change_from_baseline = ((sum_of_lesions - baseline_sld) / baseline_sld) * 100
+    ) %>% 
+    # For coding disease progression, RECIST sets the criterion of an increase of at least 20% with respect to the smallest sum of lesion diameters (nadir).
+    group_by(patient) %>%
+    mutate(
+      nadir = ifelse(event_num == 0, sum_of_lesions, pmin(sum_of_lesions, lag(sum_of_lesions)))
+    ) %>%
+    mutate(
+      change_from_nadir = sum_of_lesions - nadir
+    ) %>%
+    mutate(
+      percent_change_from_nadir = ((sum_of_lesions - nadir) / nadir) * 100
+    )
+
+data_05_or_recist <- merge(
+  data_05_or_recist,
+  data_03_new_lesions,
+  by = c("patient", "event_num", "evaluation_date"),
+  all = TRUE
+) %>% 
+  mutate(
+    new_lesions = if_else(
+      is.na(new_lesions), "No", new_lesions
+    )
+  )
+
+data_05_or_recist <- merge(
+  data_05_or_recist,
+  data_04a_recist,
+  by = c("patient", "event_num"),
+  all = TRUE
+) %>%
+  filter(
+    !is.na(evaluation_date)
+    ) %>% 
+  mutate(
+    recist_overall_response = if_else(
+      recist_overall_response == "Progressive Disease (PD)", "PD", recist_overall_response),
+    recist_overall_response = if_else(
+      recist_overall_response == "Complete Response (CR)", "CR", recist_overall_response),
+    recist_overall_response = if_else(
+      recist_overall_response == "Partial Response (PR)", "PR", recist_overall_response),
+    recist_overall_response = if_else(
+      recist_overall_response == "Stable Disease (SD)", "SD", recist_overall_response),
+    recist_overall_response = if_else(
+      recist_overall_response == "Non-CR/Non-PD", "Non-CR/Non-PD", recist_overall_response),
+    PD = if_else(recist_overall_response == "PD", 1, 0),
+    CR = if_else(recist_overall_response == "CR", 1, 0),
+    PR = if_else(recist_overall_response == "PR", 1, 0),
+    SD = if_else(recist_overall_response == "SD", 1, 0),
+    NN = if_else(recist_overall_response == "Non-CR/Non-PD", 1, 0),
+    pd_this_ta = case_when(PD == 1 ~ event_num),
+    cr_this_ta = case_when(CR == 1 ~ event_num),
+    pr_this_ta = case_when(PR == 1 ~ event_num),
+    sd_this_ta = case_when(SD == 1 ~ event_num),
+    nn_this_ta = case_when(NN == 1 ~ event_num),
+    site = substr(patient, 1, 4)
+  )
+
+data_05_or_recist <- merge(
+  data_00_patient_ids,
+  data_05_or_recist,
+  by = "patient",
+  all = FALSE
+)
+
+rmarkdown::paged_table(data_05_or_recist)
+```
+
+# Tumour assessment visualization
+
+Finally, we generated for each site a graphical representation of the tumour assessments of each patient with their overall response coded according to RECIST v.1.1, as well as the percentage change in the sum of lesion diameters with respect to baseline:
+
+```{r, warning = FALSE}
+cols <- c(
+  "CR" = "#153D99",
+  "PR" = "#74AAFF",
+  "SD" = "#FFD966",
+  "Non-CR/Non-PD" = "#9ACEB7",
+  "PD" = "#B24745"
+  # "Measurable disease" = "#000000",
+  # "Non-measurable disease" = "#000000",
+)
+
+shape_override <- c(23, 19, 15, 15, 4)
+# shape_override <- c(23, 13, 15, 1, 4, 19, 15)
+stroke_override <- c(1, 1, 1,  .9, 1)
+# stroke_override <- c(1, 0.75, 1, 0.75, 1,  .9, 1)
+size_override <-  c(2, 2, 2, 2, 2)
+# size_override <-  c(2, 3.5, 2, 3.5, 2, 2.5, 2)
+
+sites <- c(
+  "0102", "0103", "0105", "0106", "0107", "0108", "0109", "0110", "0111",
+  "0112", "0113", "0114", "0116", "0117", "0118", "0119", "0302", "0401",
+  "0402", "0501", "0502", "0504", "0601", "0602"
+  )
+
+swimmer_spider_plot <- function(site, comment, name) {
+  swimmer_ta <- data_05_or_recist %>%
+  filter(
+    site == {{site}}
+  ) %>% 
+  ggplot(
+    aes(y = patient, group = patient)) +
+  theme_bw() + 
+  theme(
+    panel.grid.minor.x = element_blank(),
+    panel.border = element_blank()
+  ) +
+  # 1 data layer: line plot showing number of TAs
+  geom_line(aes(x = event_num), size = 1.5) +
+  # 2 data layer: dot plot showing whether each patient had measurable disease at baseline
+  geom_point(aes(x = baseline_target,
+                 col = "Measurable disease"),
+             size = 3.5,
+             stroke = 0.75,
+             shape = 13) +
+  # 3 data layer: dot plot showing whether each patient had only non-measurable disease at baseline 
+  geom_point(aes(x = baseline_nontarget,
+                 col = "Non-measurable disease"),
+             size = 3.5,
+             stroke = 0.75,
+             shape = 1) +
+  # 4 data layer: dot plot showing TAs with an OR = SD
+  geom_point(aes(x = sd_this_ta,
+                 col = "SD"),
+             stroke = 2,
+             shape = 15) +
+  # 5 data layer: dot plot showing TAs with an OR = PR
+  geom_point(aes(x = pr_this_ta,
+                 col = "PR"),
+             size = 2,
+             stroke = 1.5,
+             shape = 19,
+             fill = "#74AAFF") +
+  # 6 data layer: dot plot showing TAs with an OR = CR
+  geom_point(aes(x = cr_this_ta,
+                 col = "CR"),
+             size = 2,
+             stroke = 1.5,
+             shape = 23,
+             fill = "#153D99") +
+  # 7 data layer: dot plot showing TAs with an OR = PD
+  geom_point(aes(x = pd_this_ta,
+                 col = "PD"),
+             size = 2,
+             stroke = 1.5,
+             shape = 4) +
+  # 8 data layer: dot plot showing TAs with an OR = Non-CR/Non-PD
+  geom_point(aes(x = nn_this_ta,
+                 col = "Non-CR/Non-PD"),
+             stroke = 2,
+             shape = 15) +
+  # Final aesthetics adjustments
+  scale_color_manual(values = cols,
+                     limits = c('CR', 'PR', 'SD', 'Non-CR/Non-PD', 'PD'),
+                     name = "Overall Response") +
+  scale_x_continuous(breaks = seq(1, 10 , 1)) +
+  guides(color = guide_legend(
+    override.aes = list(
+      shape = shape_override,
+      stroke = stroke_override,
+      size = size_override
+    )
+  )) +
+  labs(
+    x = "Tumor assessment",
+    y = "Patient"
+  )
+
+  ggsave(
+    paste("output/swimmer-spider-plot/materials/ATractiB_site-", as.character({{site}}), "_swimmer_TAs_2023-04-18.png", sep = ""),
+    swimmer_ta,
+    width = 24,
+    height = 120,
+    units = "cm",
+    dpi = 300
+    )
+  
+  spider_ta <- data_05_or_recist %>% 
+  filter(
+    site == {{site}}
+    ) %>%
+  ggplot(
+  aes(x = event_num, y = percent_change_from_baseline)
+  ) + 
+  # Line plot showing SDL percent change from baseline
+  geom_line(aes(color = patient), size = 1.2) +
+  scale_color_manual(values = c(
+    rep("#000000", 200))
+  ) +
+  # Second data layer: dot plot showing TAs with an OR = SD
+  geom_point(aes(x = sd_this_ta,
+                 col = "SD"),
+             stroke = 1.5,
+             shape = 22,
+             colour = "#FFD966",
+             fill = "#FFD966") +
+  # Third data layer: dot plot showing TAs with an OR = PR
+  geom_point(aes(x = pr_this_ta,
+                 col = "PR"),
+             size = 2,
+             stroke = 1.5,
+             shape = 21,
+             colour = "#74AAFF",
+             fill = "#74AAFF") +
+  # Fourth data layer: dot plot showing TAs with an OR = CR
+  geom_point(aes(x = cr_this_ta,
+                 col = "CR"),
+             size = 2,
+             stroke = 1.5,
+             shape = 23,
+             colour = "#153D99",
+             fill = "#153D99") +
+  # Fifth data layer: dot plot showing TAs with an OR = PD
+  geom_point(aes(x = pd_this_ta,
+                 col = "PD"),
+             size = 2,
+             stroke = 1.5,
+             shape = 4,
+             colour = "#B24745") +
+  # Final aesthetics adjustments
+  scale_fill_manual(values = cols,
+                    name = "Overall Response") +
+  theme_minimal() +
+  theme(
+    panel.border = element_blank(),
+    panel.grid.minor.y = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.background = element_rect(fill = "#FFFFFF", colour = "#FFFFFF"),
+    plot.background  = element_rect(fill = "#FFFFFF", colour = "#FFFFFF"),
+    legend.title = element_text(size = 5),
+    legend.text = element_text(size = 5),
+    legend.justification = "top",
+    legend.position = c(0.95, 0.95),
+    legend.direction = "vertical"
+  ) +
+  labs(
+    x = "Tumor assessment",
+    y = "Change in sum of lesions from baseline (%)",
+    shape = "Overall response"
+  ) +
+  guides(size = "none",
+         color = "none"
+  ) +
+  scale_x_continuous(breaks = seq(1, 10 , 1)) +
+  scale_y_continuous(breaks = seq(-100, 100 , 20))
+
+  spider_ta <- spider_ta + scale_shape(na.translate = FALSE)
+  
+  ggsave(
+    paste("output/swimmer-spider-plot/materials/ATractiB_site-", as.character({{site}}), "_spider_TAs_2023-04-18.png", sep = ""),
+    spider_ta,
+    width = 30,
+    height = 12,
+    units = "cm",
+    dpi = 300
+    )
+
+  spider_ta <- spider_ta +
+    annotate("rect", xmin = 0, xmax = 10, ymin = -30, ymax = -100,
+             alpha = .1,fill = "#74AAFF") +
+    annotate("rect", xmin = 0, xmax = 10, ymin = 20, ymax = 100,
+             alpha = .0, fill = "#B24745")
+  
+  combined_ta <- plot_grid(
+  swimmer_ta,
+  spider_ta,
+  nrow = 1,
+  rel_heights = c(1, 1)
+  )
+
+  title <- ggdraw() + 
+    draw_label({{name}},
+      fontface = 'bold',
+      x = 0,
+      hjust = 0
+    ) +
+    theme(
+      plot.margin = margin(0, 0, 0, 7)
+    )
+  
+  combined_ta <- plot_grid(
+    title, combined_ta,
+    ncol = 1,
+    rel_heights = c(0.1, 1)
+  )
+  
+  combined_ta <- add_sub(
+    combined_ta, "   Reason for study treatment discontinuation:",
+    x = 0, hjust = 0,
+    fontface = 'bold',
+    size = 8
+  )
+    
+  combined_ta <- add_sub(
+    combined_ta, {{comment}},
+    x = 0, hjust = 0,
+    fontface = 'plain',
+    size = 8
+  )
+  
+  ggsave(
+    paste("output/swimmer-spider-plot/ATractiB_site-", as.character({{site}}), "_TAs_2023-04-18.png", sep = ""),
+    combined_ta,
+    width = 30,
+    height = 15,
+    units = "cm",
+    dpi = 300
+    )
+}
+```
+
+```{r}
+site_0102_name <- "Site 0102 - Hospital Universitario Arnau de Vilanova de Lleida"
+
+comment_site_0102 <- "   Patient 0102-001 had a new lesion in the occipital bone.\n   Patient 0102-002 responded to study treatment until unacceptable toxicity (grade 3 cerebrovascular accident related to Bevacizumab).\n   Patient 0102-003 had a new bilateral lesion in the hiliar lymph node.\n   Patient 0102-004 responded to study treatment until unacceptable toxicity (unrelated grade 3 vomiting and cough).\n   Patient 0102-005 is stable (Non-CR/Non-PD) after 20 cycles of study treatment.\n   Patient 0102-007 was stable (Non-CR/Non-PD) until she had a new lesion in the right breast.\n   Patient 0102-008 had a 20% increase in sum of lesion diameters from nadir."
+
+swimmer_spider_plot("0102", comment_site_0102, site_0102_name)
+```
+
+```{r}
+site_0103_name <- "Site 0103 - Hospital Universitario Ramón y Cajal"
+
+comment_site_0103 <- "   Patient 0103-001 had a 21.1% increase in sum of lesion diameters from nadir that was confirmed as iCPD 4 weeks later.\n   Patient 0103-002 was stable (Non-CR/Non-PD) until unequivocal progression of a non-target lesion in the right illiac bone. We are missing the evaluation dates of tumour assessments #1, #2, & #4\n   Patient 0103-004 was stable (Non-CR/Non-PD) until unequivocal progression of a non-target lesion in the thorax. The eCRF shows an Overall Response of Non-CR/Non-PD for non-target lesions, though.\n   Patient 0103-006 is responding after 26 cycles of study treatment.\n   Patient 0103-007 responded to study treatment until clinical disease progression (new skin lesion) 2 weeks after TA #4.\n   Patient 0103-008 was stable until clinical disease progression right before TA #3.\n   Patient 0103-009 had an 88.6% increase in sum of lesion diameters from nadir.\n   Patient 0103-010 had a new lesion in the liver.\n   Patient 0103-011 is stable (Non-CR/Non-PD) after 14 cycles of study treatment.\n   
+"
+
+swimmer_spider_plot("0103", comment_site_0103, site_0103_name)
+```
+
+```{r}
+site_0105_name <- "Site 0105 - Hospital Clínico San Carlos"
+
+comment_site_0105 <- "   Patient XXXX-XXX .\n"
+
+swimmer_spider_plot("0105", comment_site_0105, site_0105_name)
+```
+
+```{r}
+site_0106_name <- "Site 0106 - MD Anderson Cancer Center Madrid"
+
+comment_site_0106 <- "   Patient XXXX-XXX .\n"
+
+swimmer_spider_plot("0106", comment_site_0106, site_0106_name)
+```
+
+```{r}
+site_0107_name <- "Site 0107 - Hospital Universitario Virgen del Rocío"
+
+comment_site_0107 <- "   Patient XXXX-XXX .\n"
+
+swimmer_spider_plot("0107", comment_site_0107, site_0107_name)
+```
+
+```{r}
+site_0108_name <- "Site 0108 - Hospital Quiron San Camilo - Ruber Juan Bravo"
+
+comment_site_0108 <- "   Patient XXXX-XXX .\n"
+
+swimmer_spider_plot("0108", comment_site_0108, site_0108_name)
+```
+
+```{r}
+site_0109_name <- "Site 0109 - Hospital Universitari Sant Joan de Reus"
+
+comment_site_0109 <- "   Patient XXXX-XXX .\n"
+
+swimmer_spider_plot("0109", comment_site_0109, site_0109_name)
+```
+
+```{r}
+site_0110_name <- "Site 0110 - Hospital Universitario San Juan de Alicante"
+
+comment_site_0110 <- "   Patient XXXX-XXX .\n"
+
+swimmer_spider_plot("0110", comment_site_0110, site_0110_name)
+```
+
+```{r}
+site_0111_name <- "Site 0111 - Hospital Universitario La Ribera, Alzira"
+
+comment_site_0111 <- "   Patient XXXX-XXX .\n"
+
+swimmer_spider_plot("0111", comment_site_0111, site_0111_name)
+```
+
+```{r}
+site_0112_name <- "Site 0112 - Hospital Universitario Miguel Servet"
+
+comment_site_0112 <- "   Patient XXXX-XXX .\n"
+
+swimmer_spider_plot("0112", comment_site_0112, site_0112_name)
+```
+
+```{r}
+site_0113_name <- "Site 0113 - Hospital Quirón Valencia"
+
+comment_site_0113 <- "   Patient XXXX-XXX .\n"
+
+swimmer_spider_plot("0113", comment_site_0113, site_0113_name)
+```
+
+```{r}
+site_0114_name <- "Site 0114 - Hospital Universitario Universitario de Navarra"
+
+comment_site_0114 <- "   Patient XXXX-XXX .\n"
+
+swimmer_spider_plot("0114", comment_site_0114, site_0114_name)
+```
+
+```{r}
+site_0116_name <- "Site 0116 - Hospital Universitario Insular de Gran Canaria"
+
+comment_site_0116 <- "   Patient XXXX-XXX .\n"
+
+swimmer_spider_plot("0116", comment_site_0116, site_0116_name)
+```
+
+```{r}
+site_0117_name <- "Site 0117 - Hospital Universitari Dexeus"
+
+comment_site_0117 <- "   Patient XXXX-XXX .\n"
+
+swimmer_spider_plot("0117", comment_site_0117, site_0117_name)
+```
+
+```{r}
+site_0118_name <- "Site 0118 - Hospital Universitario Clínico San Cecilio de Granada"
+
+comment_site_0118 <- "   Patient XXXX-XXX .\n"
+
+swimmer_spider_plot("0118", comment_site_0118, site_0118_name)
+```
+
+```{r}
+site_0119_name <- "Site 0119 - Hospital de Sant Joan Despí Moisès Broggi"
+
+comment_site_0119 <- "   Patient XXXX-XXX .\n"
+
+swimmer_spider_plot("0119", comment_site_0119, site_0119_name)
+```
+
+```{r}
+site_0302_name <- "Site 0302 - Istituto Nazionale Tumori IRCCS Fondazione G. Pascale"
+
+comment_site_0302 <- "   Patient XXXX-XXX .\n"
+
+swimmer_spider_plot("0302", comment_site_0302, site_0302_name)
+```
+
+```{r}
+site_0401_name <- "Site 0401 - University Hospital Essen"
+
+comment_site_0401 <- "   Patient XXXX-XXX .\n"
+
+swimmer_spider_plot("0401", comment_site_0401, site_0401_name)
+```
+
+```{r}
+site_0402_name <- "Site 0402 - Universitätsklinikum Mannheim"
+
+comment_site_0402 <- "   Patient XXXX-XXX .\n"
+
+swimmer_spider_plot("0402", comment_site_0402, site_0402_name)
+```
+
+```{r}
+site_0501_name <- "Site 0501 - Hopital Europeen Georges Pompidou"
+
+comment_site_0501 <- "   Patient XXXX-XXX .\n"
+
+swimmer_spider_plot("0501", comment_site_0501, site_0501_name)
+```
+
+```{r}
+site_0502_name <- "Site 0502 - Insitut de cancérologie Strasbourg Europe"
+
+comment_site_0502 <- "   Patient XXXX-XXX .\n"
+
+swimmer_spider_plot("0502", comment_site_0502, site_0502_name)
+```
+
+```{r}
+site_0504_name <- "Site 0504 - Hôpital Tenon AP-HP"
+
+comment_site_0504 <- "   Patient XXXX-XXX .\n"
+
+swimmer_spider_plot("0504", comment_site_0504, site_0504_name)
+```
+
