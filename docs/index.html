@@ -32,6 +32,8 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
 
 <link rel="icon" href="https://github.com/workflowr/workflowr-assets/raw/main/img/reproducible.png">
 <!-- Add a small amount of space between sections. -->
@@ -266,7 +268,13 @@ $(document).ready(function () {
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
-        
+        <li>
+  <a href="https://github.com/danalclop/ATractiB">
+    <span class="fab fa-github"></span>
+     
+    Source code
+  </a>
+</li>
       </ul>
     </div><!--/.nav-collapse -->
   </div><!--/.container -->
@@ -305,7 +313,7 @@ class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2023-04-18
+<strong>Last updated:</strong> 2023-04-26
 </p>
 <p>
 <strong>Checks:</strong> <span
@@ -352,13 +360,15 @@ results.</p>
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrong5faa033">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomMedsirScientificATractiBtreee820edebac2b4c23b62c5b1a2518d927c9da758etargetblanke820edea">
 <span class="glyphicon glyphicon-ok text-success"
-aria-hidden="true"></span> <strong>Repository version:</strong> 5faa033
+aria-hidden="true"></span> <strong>Repository version:</strong>
+<a href="https://github.com/MedsirScientific/ATractiB/tree/e820edebac2b4c23b62c5b1a2518d927c9da758e" target="_blank">e820ede</a>
 </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrong5faa033"
+<div
+id="strongRepositoryversionstrongahrefhttpsgithubcomMedsirScientificATractiBtreee820edebac2b4c23b62c5b1a2518d927c9da758etargetblanke820edea"
 class="panel-collapse collapse">
 <div class="panel-body">
 <p>
@@ -367,7 +377,8 @@ and connecting the code version to the results is critical for
 reproducibility.
 </p>
 <p>
-The results in this page were generated with repository version 5faa033.
+The results in this page were generated with repository version
+<a href="https://github.com/MedsirScientific/ATractiB/tree/e820edebac2b4c23b62c5b1a2518d927c9da758e" target="_blank">e820ede</a>.
 See the <em>Past versions</em> tab to see a history of the changes made
 to the R Markdown and HTML files.
 </p>
@@ -383,8 +394,11 @@ were generated:
 <pre><code>
 Ignored files:
     Ignored:    .DS_Store
+    Ignored:    .Rhistory
     Ignored:    .Rproj.user/
     Ignored:    analysis/.DS_Store
+    Ignored:    analysis/output/.DS_Store
+    Ignored:    analysis/output/swimmer-spider-plot/.DS_Store
     Ignored:    data/ATRACTIB_Adverse Events_2023_04_18.xlsx
     Ignored:    data/ATRACTIB_Concomitant Medication_2023_04_18.xlsx
     Ignored:    data/ATRACTIB_Cycles_2023_04_18.xlsx
@@ -398,11 +412,7 @@ Ignored files:
     Ignored:    data/ATRACTIB_Tumor Assessment_2023_04_18.xlsx
     Ignored:    data/ATRACTIB_Unscheduled Visits_2023_04_18.xlsx
     Ignored:    data/ATRACTIB_report_Tumor_Assessment_2023_04_18.xlsx
-    Ignored:    data/~$ATRACTIB_Tumor Assessment_2023_04_18.xlsx
-
-Untracked files:
-    Untracked:  analysis/WP1_QA_tumor-assessments_2023-04-18.Rmd
-    Untracked:  analysis/output/
+    Ignored:    output/.DS_Store
 
 </code></pre>
 <p>
@@ -452,7 +462,75 @@ Message
 Rmd
 </td>
 <td>
-57aae69
+<a href="https://github.com/MedsirScientific/ATractiB/blob/e820edebac2b4c23b62c5b1a2518d927c9da758e/analysis/index.Rmd" target="_blank">e820ede</a>
+</td>
+<td>
+MedsirScientific
+</td>
+<td>
+2023-04-26
+</td>
+<td>
+wflow_publish("analysis/index.Rmd")
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/MedsirScientific/ATractiB/blob/b2cbcce72a16d38ae6c8ed4daec77dd5612a052f/analysis/index.Rmd" target="_blank">b2cbcce</a>
+</td>
+<td>
+MedsirScientific
+</td>
+<td>
+2023-04-26
+</td>
+<td>
+Delete unused .Rproj file uploaded by accident
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/MedsirScientific/ATractiB/blob/ac03e514ec7ee634d933fa9bf7a2e7dccb989167/analysis/index.Rmd" target="_blank">ac03e51</a>
+</td>
+<td>
+MedsirScientific
+</td>
+<td>
+2023-04-18
+</td>
+<td>
+Update index file to link to analysis page
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/MedsirScientific/ATractiB/9878aa9ce52466b96b0b58803d5385391eef97fb/docs/index.html" target="_blank">9878aa9</a>
+</td>
+<td>
+MedsirScientific
+</td>
+<td>
+2023-04-18
+</td>
+<td>
+Add first batch of tumour assessment data QA from sites 0102 &amp; 0103
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/MedsirScientific/ATractiB/blob/57aae69b513ba15f44ccabb6617013d149e7d1ef/analysis/index.Rmd" target="_blank">57aae69</a>
 </td>
 <td>
 MedsirScientific
@@ -471,7 +549,15 @@ Start workflowr project.
 </div>
 </div>
 </div>
-<p>Welcome to my research website.</p>
+<p>This is the index page of the online repository for the ATractiB
+study. Here is a list of work packages:</p>
+<ul>
+<li><p><a href="WP1_QA_tumor-assessments_2023-04-18.html">QA of tumor
+assessments prior to ESMO 2023</a></p></li>
+<li><p><a href="WP2_primary-endpoint_2023-03-29.html">Preliminary
+analysis of the primary endpoing (Progression-Free Survival;
+PFS)</a></p></li>
+</ul>
 
 
 <!-- Adjust MathJax settings so that all math formulae are shown using
