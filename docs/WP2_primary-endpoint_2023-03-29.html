@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Daniel Alcala" />
+
+<meta name="date" content="2023-03-27" />
+
+<title>ATractiB_primary-endpoint_2023-03-27</title>
+
+<script src="site_libs/header-attrs-2.14/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<link rel="icon" href="https://github.com/workflowr/workflowr-assets/raw/main/img/reproducible.png">
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">ATractiB_preliminary_primary-endpoint_2023-03-29</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">ATractiB_primary-endpoint_2023-03-27</h1>
+<h4 class="author">Daniel Alcala</h4>
+<h4 class="date">2023-03-27</h4>
+
+</div>
+
+
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
+<span class="glyphicon glyphicon-list" aria-hidden="true"></span>
+workflowr <span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span>
+</button>
+</p>
+<div id="workflowr-report" class="collapse">
+<ul class="nav nav-tabs">
+<li class="active">
+<a data-toggle="tab" href="#summary">Summary</a>
+</li>
+<li>
+<a data-toggle="tab" href="#checks"> Checks <span
+class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+</a>
+</li>
+<li>
+<a data-toggle="tab" href="#versions">Past versions</a>
+</li>
+</ul>
+<div class="tab-content">
+<div id="summary" class="tab-pane fade in active">
+<p>
+<strong>Last updated:</strong> 2023-03-29
+</p>
+<p>
+<strong>Checks:</strong> <span
+class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7
+<span class="glyphicon glyphicon-exclamation-sign text-danger"
+aria-hidden="true"></span> 0
+</p>
+<p>
+<strong>Knit directory:</strong>
+<code>ATractiB_preliminary_primary-endpoint_2023-03-29/</code> <span
+class="glyphicon glyphicon-question-sign" aria-hidden="true"
+title="This is the local directory in which the code in this file was executed.">
+</span>
+</p>
+<p>
+This reproducible <a href="https://rmarkdown.rstudio.com">R Markdown</a>
+analysis was created with <a
+  href="https://github.com/workflowr/workflowr">workflowr</a> (version
+1.7.0). The <em>Checks</em> tab describes the reproducibility checks
+that were applied when the results were created. The <em>Past
+versions</em> tab lists the development history.
+</p>
+<hr>
+</div>
+<div id="checks" class="tab-pane fade">
+<div id="workflowr-checks" class="panel-group">
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date
+</a>
+</p>
+</div>
+<div id="strongRMarkdownfilestronguptodate"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great! Since the R Markdown file has been committed to the Git
+repository, you know the exact version of the code that produced these
+results.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongEnvironmentstrongempty">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Environment:</strong> empty </a>
+</p>
+</div>
+<div id="strongEnvironmentstrongempty" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! The global environment was empty. Objects defined in the
+global environment can affect the analysis in your R Markdown file in
+unknown ways. For reproduciblity it’s best to always run the code in an
+empty environment.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSeedstrongcodesetseed20230329code">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Seed:</strong>
+<code>set.seed(20230329)</code> </a>
+</p>
+</div>
+<div id="strongSeedstrongcodesetseed20230329code"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>The command <code>set.seed(20230329)</code> was run prior to running
+the code in the R Markdown file. Setting a seed ensures that any results
+that rely on randomness, e.g. subsampling or permutations, are
+reproducible.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSessioninformationstrongrecorded">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Session information:</strong>
+recorded </a>
+</p>
+</div>
+<div id="strongSessioninformationstrongrecorded"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Recording the operating system, R version, and package
+versions is critical for reproducibility.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongCachestrongnone">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Cache:</strong> none </a>
+</p>
+</div>
+<div id="strongCachestrongnone" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Nice! There were no cached chunks for this analysis, so you can be
+confident that you successfully produced the results during this
+run.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongFilepathsstrongrelative">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>File paths:</strong> relative </a>
+</p>
+</div>
+<div id="strongFilepathsstrongrelative" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Using relative paths to the files within your workflowr
+project makes it easier to run your code on other machines.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrong38fbe71">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Repository version:</strong> 38fbe71
+</a>
+</p>
+</div>
+<div id="strongRepositoryversionstrong38fbe71"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>
+Great! You are using Git for version control. Tracking code development
+and connecting the code version to the results is critical for
+reproducibility.
+</p>
+<p>
+The results in this page were generated with repository version 38fbe71.
+See the <em>Past versions</em> tab to see a history of the changes made
+to the R Markdown and HTML files.
+</p>
+<p>
+Note that you need to be careful to ensure that all relevant files for
+the analysis have been committed to Git prior to generating the results
+(you can use <code>wflow_publish</code> or
+<code>wflow_git_commit</code>). workflowr only checks the R Markdown
+file, but you know if there are other scripts or data files that it
+depends on. Below is the status of the Git repository when the results
+were generated:
+</p>
+<pre><code>
+Ignored files:
+    Ignored:    .DS_Store
+    Ignored:    data/.DS_Store
+    Ignored:    data/ATRACTIB_Adverse Events_2023_03_27.xlsx
+    Ignored:    data/ATRACTIB_Concomitant Medication_2023_03_27.xlsx
+    Ignored:    data/ATRACTIB_Cycles_2023_03_27.xlsx
+    Ignored:    data/ATRACTIB_End of Study_2023_03_27.xlsx
+    Ignored:    data/ATRACTIB_EoT - FU28_2023_03_27.xlsx
+    Ignored:    data/ATRACTIB_FU 6 months_2023_03_27.xlsx
+    Ignored:    data/ATRACTIB_HIV Control_2023_03_27.xlsx
+    Ignored:    data/ATRACTIB_ICF Screening_2023_03_27.xlsx
+    Ignored:    data/ATRACTIB_Laboratory_tests_2023_03_27.xlsx
+    Ignored:    data/ATRACTIB_Post-study Treatment_2023_03_27.xlsx
+    Ignored:    data/ATRACTIB_Tumor Assessment_2023_03_27.xlsx
+    Ignored:    data/ATRACTIB_Unscheduled Visits_2023_03_27.xlsx
+    Ignored:    data/ATRACTIB_report_Tumor_Assessment_2023_03_27.xlsx
+    Ignored:    data/ATractiB_QA_EoT-PD-dates_2023-03-28.xlsx
+    Ignored:    data/ATractiB_data-management_2023-03-28.xlsx
+    Ignored:    data/ATractiB_preliminary__PFS_2023-03-28.xlsx
+    Ignored:    data/ATractiB_survival_raw_2023-02-17.xlsx
+
+</code></pre>
+<p>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not
+included in this status report because it is ok for generated content to
+have uncommitted changes.
+</p>
+</div>
+</div>
+</div>
+</div>
+<hr>
+</div>
+<div id="versions" class="tab-pane fade">
+
+<p>
+These are the previous versions of the repository in which changes were
+made to the R Markdown
+(<code>analysis/ATractiB_primary-endpoint_2023-03-27.Rmd</code>) and
+HTML (<code>docs/ATractiB_primary-endpoint_2023-03-27.html</code>)
+files. If you’ve configured a remote Git repository (see
+<code>?wflow_git_remote</code>), click on the hyperlinks in the table
+below to view the files as they were in that past version.
+</p>
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+File
+</th>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+<th>
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+38fbe71
+</td>
+<td>
+Dani Alcalá
+</td>
+<td>
+2023-03-29
+</td>
+<td>
+Publish the initial files for the preliminary PFS analysis of the
+ATractiB study
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr>
+</div>
+</div>
+</div>
+<p>To perform the estimation of Progression-Free Survival (PFS) we will
+need a dataframe with the following variables: - patient: Unique
+identification code for each patient - event: Binary variable indicating
+whether the patient experienced a PFS event (1) or not (0) - time: Time
+in months from the first cycle of study treatment to the PFS event or
+the last follow-up visit</p>
+<p>Therefore, we will first generate a dataset with the list of patients
+included in the PFS analysis.</p>
+<p>We know that a total of n = 101 patients were enrolled in the study,
+although one of them (0119-005) was excluded from the analysis
+population. We will fetch the list of patients from the study treatment
+intake sheet (“ATRACTIB_Cycles_2023_03_27.xlsx”) to also capture the
+date of treatment initiation (C1D1 date):</p>
+<div id="list-of-patients-included-in-the-analysis-population"
+class="section level1">
+<h1>List of patients included in the analysis population</h1>
+</div>
+<div id="pfs-event-coding" class="section level1">
+<h1>PFS event coding</h1>
+<p>To know if each patient has experienced a PFS event we need to look
+at the End of Treatment (EoT) and End of Study (EoS) pages. In the main
+analysis, a PFS event will include: - Radiological progression confirmed
+by RECIST v.1.1 - Clinical progression according to the investigator -
+Death</p>
+<p>First, we will fetch and clean the data from the EoT page:</p>
+<pre class="r"><code>data02_eot &lt;- read_excel(
+  here(&quot;data/ATRACTIB_EoT - FU28_2023_03_27.xlsx&quot;),
+  skip = 1) %&gt;%
+  clean_names() %&gt;%
+  select(
+    patient,
+    discontinuation_date,
+    main_reason_for_treatment_discontinuation,
+    other_discontinuation_reason,
+    disease_progression_confirmed_by_recist_v1_1_repeated_imaging_for_pd_confirmation_not_performed,
+    date_of_radiologial_progressive_disease,
+    date_of_biological_progressive_disease,
+    clinical_progression_in_accordance_to_investigator_criteria,
+    date_of_clinical_progressive_disease
+    ) %&gt;%
+  rename(
+    eot_date = discontinuation_date,
+    eot_reason = main_reason_for_treatment_discontinuation,
+    eot_reason_other = other_discontinuation_reason,
+    eot_pd = disease_progression_confirmed_by_recist_v1_1_repeated_imaging_for_pd_confirmation_not_performed,
+    eot_radiologial_pd_date = date_of_radiologial_progressive_disease,
+    eot_biological_pd_date = date_of_biological_progressive_disease,
+    eot_clinical_pd = clinical_progression_in_accordance_to_investigator_criteria,
+    eot_clinical_pd_date = date_of_clinical_progressive_disease
+    ) %&gt;%
+  mutate(
+    eot_date = dmy(eot_date),
+    eot_radiologial_pd_date = dmy(eot_radiologial_pd_date),
+    eot_biological_pd_date = dmy(eot_biological_pd_date),
+    eot_clinical_pd_date = dmy(eot_clinical_pd_date)
+    )
+
+# Count how many entries there are in the EoT page
+paste0(&quot;There are &quot;, nrow(data02_eot), &quot; patients in the EoT page&quot;)</code></pre>
+<pre><code>[1] &quot;There are 68 patients in the EoT page&quot;</code></pre>
+<p>Some patients have “Other” as the main reason for discontinuation of
+treatment and, in another column called “Other discontinuation reason”,
+the reason is specified. Therefore, we need to condense this information
+into a single column, changing the value “Other” to the corresponding
+reason listed in the “Other discontinuation reason” column:</p>
+<pre class="r"><code>data02_eot &lt;- data02_eot %&gt;%
+  mutate(
+    eot_reason = if_else(eot_reason == &quot;Other&quot;, eot_reason_other, eot_reason)
+    )
+
+# Check the frequency of each reason for discontinuation of treatment
+data02_eot %&gt;% 
+    count(eot_reason, name = &quot;n&quot;)</code></pre>
+<pre><code># A tibble: 8 × 2
+  eot_reason                                                                   n
+  &lt;chr&gt;                                                                    &lt;int&gt;
+1 General or specific changes in the patient’s condition render the patie…     2
+2 LUMORECTOMY                                                                  1
+3 Patient withdrawals consent (fill “End of Study” form)                       3
+4 patient&#39;s decision                                                           1
+5 Progressive disease                                                         52
+6 The patient is going to undergo radical surgical treatment. In addition…     1
+7 The patient underwent a lumpectomy on November 9.                            1
+8 Unacceptable toxicity/adverse event                                          7</code></pre>
+<p>We will now create a new column called “eot_pd_date” that will
+contain the date of the first PFS event (radiological, biological or
+clinical disease progression) for each patient. If a patient has
+experienced more than one PFS event, the date of the first event will be
+used:</p>
+<pre class="r"><code>data02_eot &lt;- data02_eot %&gt;%
+  mutate(
+    eot_pd_date = if_else(is.na(eot_radiologial_pd_date), eot_clinical_pd_date, eot_radiologial_pd_date)
+    ) %&gt;%
+    mutate(
+        eot_pd = if_else(eot_reason == &quot;Progressive disease&quot;, &quot;Yes&quot;, eot_pd)
+    )</code></pre>
+<p>Those patients who have experienced disease progression should have
+discontinued study treatment at the date of progression.</p>
+<p>As a quality control, we will explore what difference there is
+between the dates in the end-of-treatment column and in the disease
+progression column:</p>
+<pre class="r"><code>QC_eot_pd_dates &lt;- data02_eot %&gt;% 
+    filter(eot_pd == &quot;Yes&quot;) %&gt;% 
+    select(patient, eot_date, eot_pd_date) %&gt;% 
+    # Calculate the difference in days between the EoT and PD dates
+    mutate(
+        eot_pd_date_diff = eot_date - eot_pd_date
+        )
+
+write_xlsx(QC_eot_pd_dates, here(&quot;data/ATractiB_QA_EoT-PD-dates_2023-03-28.xlsx&quot;))
+
+hist &lt;- QC_eot_pd_dates %&gt;% 
+    ggplot(aes(x = eot_pd_date_diff)) +
+    geom_histogram(bins = 50) +
+    labs(
+        title = &quot;Quality Control: Difference from EoT date to PD date&quot;,
+        x = &quot;EoT date vs. PD date (days)&quot;,
+        y = &quot;Number of patients&quot;
+        ) +
+  theme_minimal()
+
+ggsave(
+  &quot;output/ATractiB_QA_EoT-PD-dates_2023-03-28.png&quot;,
+  hist,
+  width = 20,
+  height = 12,
+  units = &quot;cm&quot;,
+  dpi = 300
+  )</code></pre>
+<pre><code>Don&#39;t know how to automatically pick scale for object of type &lt;difftime&gt;.
+Defaulting to continuous.</code></pre>
+<pre><code>Warning: Removed 1 rows containing non-finite values (`stat_bin()`).</code></pre>
+<p>For the time being, we will take the date of disease progression for
+those patients who have it and, for the rest, the date of the end of
+treatment:</p>
+<pre class="r"><code>data02_eot &lt;- data02_eot %&gt;%
+    mutate(
+        eot_date = if_else(!is.na(eot_pd_date), eot_pd_date, eot_date)
+        ) %&gt;%
+    select(
+        patient, eot_date, eot_reason, eot_pd, eot_pd_date
+    )</code></pre>
+<p>We will then use the EoS data to capture those PFS event cases that
+have not been recorded in the EoT sheet:</p>
+<pre class="r"><code>data03_eos &lt;- read_excel(
+    here(&quot;data/ATRACTIB_End of Study_2023_03_27.xlsx&quot;),
+    skip = 1) %&gt;% 
+    clean_names() %&gt;%
+    rename(
+        follow_up = has_the_patient_continued_the_follow_up_until_the_eo_s_date,
+        follow_up_reason = end_of_study_follow_up_main_reason,
+        death_reason = principal_cause_of_death,
+        eos_date = eo_s_date
+    ) %&gt;%
+    select(-specify_other_reason_end_of_study) %&gt;%
+    mutate(
+        eos_date = dmy(eos_date)
+    )
+
+data03_eos</code></pre>
+<pre><code># A tibble: 33 × 5
+   patient  follow_up follow_up_reason                   death_reason eos_date  
+   &lt;chr&gt;    &lt;chr&gt;     &lt;chr&gt;                              &lt;chr&gt;        &lt;date&gt;    
+ 1 0102-008 Yes       &lt;NA&gt;                               &lt;NA&gt;         2022-11-05
+ 2 0103-002 Yes       &lt;NA&gt;                               &lt;NA&gt;         2022-11-07
+ 3 0103-008 No        Death                              Unknown      2022-03-10
+ 4 0103-009 No        Withdrawal of consent by subject’… &lt;NA&gt;         2022-12-20
+ 5 0103-010 No        Death                              Worsening h… 2022-10-09
+ 6 0106-002 No        Death                              progression… 2022-07-30
+ 7 0107-001 No        Withdrawal of consent by subject’… &lt;NA&gt;         2022-09-27
+ 8 0107-006 No        Death                              disease pro… 2022-09-23
+ 9 0108-003 No        Lost to follow-up                  &lt;NA&gt;         2021-07-23
+10 0108-005 Yes       &lt;NA&gt;                               &lt;NA&gt;         2023-03-10
+# … with 23 more rows</code></pre>
+<p>We will combine the dataframes from the EoT and EoS pages to
+cross-reference both data sources and generate a single list of patients
+with a PFS event:</p>
+<pre class="r"><code>data04_merged &lt;- data01_cycles %&gt;%
+    left_join(data02_eot, by = &quot;patient&quot;) %&gt;%
+    left_join(data03_eos, by = &quot;patient&quot;)
+
+data04_merged &lt;- data04_merged %&gt;% 
+    # If there isn&#39;t an EoT date, record the EoS date instead
+    mutate(
+        eot_date = if_else(is.na(eot_date), eos_date, eot_date)
+        ) %&gt;% 
+    # If there isn&#39;t a reason for EoT, record that patient as still &quot;Active&quot; in the study treatment or follow-up period
+    mutate(
+        eot_reason = if_else(is.na(eot_reason), &quot;Active&quot;, eot_reason)
+        )</code></pre>
+</div>
+<div id="estimation-of-the-time-to-pfs-event" class="section level1">
+<h1>Estimation of the time to PFS event</h1>
+<p>Despite having the PFS event coding ready, we still need to do one
+more step before calculating the time to PFS event.</p>
+<p>For those patients currently active in the study (either in treatment
+or in follow-up), we need the date of the last tumour assessment to
+censor these patients:</p>
+<pre class="r"><code># Read the &quot;TARGET&quot; sheet from the &quot;ATRACTIB_Tumor Assessment_2023_03_27.xlsx&quot; Excel file, clean the column names, and store it in the &quot;data05_last_ta&quot; dataframe
+data05_last_ta &lt;- read_excel(
+    here(&quot;data/ATRACTIB_Tumor Assessment_2023_03_27.xlsx&quot;),
+    sheet = &quot;TARGET&quot;,
+    skip = 1) %&gt;% 
+    clean_names() %&gt;%
+    select(
+      patient, evaluation_date
+    ) %&gt;%
+    mutate(
+      evaluation_date = dmy(evaluation_date)
+    ) %&gt;%
+    group_by(patient) %&gt;%
+    filter(!is.na(evaluation_date)) %&gt;%
+    summarise(
+      last_evaluation_date = max(evaluation_date)
+    )
+
+data06_final &lt;- data04_merged %&gt;%
+    left_join(data05_last_ta, by = &quot;patient&quot;)
+
+data06_final &lt;- data06_final %&gt;%
+    mutate(
+        eot_date = if_else(eot_reason == &quot;Active&quot;, last_evaluation_date, eot_date)
+        )</code></pre>
+<p>Now we have everything we need to calculate the time from the start
+of study medication to the PFS event or last available tumour
+assessment:</p>
+<pre class="r"><code>data06_final &lt;- data06_final %&gt;%
+    mutate(
+        Time = if_else(eot_reason == &quot;Active&quot;, (last_evaluation_date - c1d1_date)/(365.25/12), (eot_date - c1d1_date)/(365.25/12)),
+        Time = as.numeric(Time)
+        ) %&gt;%
+    mutate(
+        Event = if_else(
+            eot_reason == &quot;Progressive disease&quot; | death_reason == &quot;clinical disease progression&quot; | (eot_reason != &quot;Progressive disease&quot; &amp; follow_up_reason == &quot;Death&quot;), 1, 0)
+        ) %&gt;%
+    mutate(
+        Event = if_else(is.na(Event), 0, Event)
+        )
+
+write_xlsx(data06_final, here(&quot;output/ATractiB_preliminary__PFS_2023-03-28.xlsx&quot;))</code></pre>
+<pre class="r"><code>survfit(Surv(Time, Event) ~ 1, data = data06_final)</code></pre>
+<pre><code>Call: survfit(formula = Surv(Time, Event) ~ 1, data = data06_final)
+
+   7 observations deleted due to missingness 
+      n events median 0.95LCL 0.95UCL
+[1,] 93     54   9.66    8.74    12.9</code></pre>
+<pre class="r"><code># This is a custom function to tinker aesthetic aspects of Kaplan-Meier plots
+customize_labels &lt;- function (p, font.title = NULL,
+                              font.subtitle = NULL, font.caption = NULL,
+                              font.x = NULL, font.y = NULL, font.xtickslab = NULL, font.ytickslab = NULL)
+{
+  original.p &lt;- p
+  if(is.ggplot(original.p)) list.plots &lt;- list(original.p)
+  else if(is.list(original.p)) list.plots &lt;- original.p
+  else stop(&quot;Can&#39;t handle an object of class &quot;, class (original.p))
+  .set_font &lt;- function(font){
+    font &lt;- ggpubr:::.parse_font(font)
+    ggtext::element_markdown (size = font$size, face = font$face, colour = font$color)
+  }
+  for(i in 1:length(list.plots)){
+    p &lt;- list.plots[[i]]
+    if(is.ggplot(p)){
+      if (!is.null(font.title)) p &lt;- p + theme(plot.title = .set_font(font.title))
+      if (!is.null(font.subtitle)) p &lt;- p + theme(plot.subtitle = .set_font(font.subtitle))
+      if (!is.null(font.caption)) p &lt;- p + theme(plot.caption = .set_font(font.caption))
+      if (!is.null(font.x)) p &lt;- p + theme(axis.title.x = .set_font(font.x))
+      if (!is.null(font.y)) p &lt;- p + theme(axis.title.y = .set_font(font.y))
+      if (!is.null(font.xtickslab)) p &lt;- p + theme(axis.text.x = .set_font(font.xtickslab))
+      if (!is.null(font.ytickslab)) p &lt;- p + theme(axis.text.y = .set_font(font.ytickslab))
+      list.plots[[i]] &lt;- p
+    }
+  }
+  if(is.ggplot(original.p)) list.plots[[1]]
+  else list.plots
+}</code></pre>
+<pre class="r"><code>### Plot ----------------------------------------------------------------------
+pfs &lt;- ggsurvplot(
+  fit = survfit(Surv(Time, Event) ~ 1, data = data06_final),
+  xlab = &quot;Time since first dose of study treatment (months)&quot;, 
+  ylab = &quot;Progression-Free Survival probability&quot;,
+  conf.int = TRUE,
+  conf.int.alpha = c(0.15),
+  xlim = c(0,22.9),
+  ylim = c(0,1.009),
+  censor.size = 5,
+  size = 1,
+  break.time.by = 3,
+  axes.offset = FALSE,
+  surv.scale = &quot;percent&quot;,
+  break.y.by = 0.10,
+  risk.table = FALSE,
+  risk.table.col = &quot;strata&quot;,
+  risk.table.y.text = TRUE,
+  risk.table.height = 0.25,
+  ggtheme = theme_classic(),
+  palette = &quot;#000000&quot;,
+  surv.median.line = &quot;hv&quot;,
+  legend.labs = &quot;Group B&quot;,
+  legend.title = &quot;&quot;
+)
+
+### Modify theme --------------------------------------------------------------
+pfs &lt;- customize_labels(
+  pfs,
+  font.title     = c(14, &quot;bold&quot;,  &quot;#0a0908&quot;),
+  font.caption   = c(12, &quot;plain&quot;, &quot;#0a0908&quot;),
+  font.x         = c(14, &quot;bold&quot;,  &quot;#0a0908&quot;),          
+  font.y         = c(14, &quot;bold&quot;,  &quot;#0a0908&quot;),      
+  font.xtickslab = c(10, &quot;plain&quot;, &quot;#0a0908&quot;),
+  font.ytickslab = c(10, &quot;plain&quot;, &quot;#0a0908&quot;)
+)
+
+grid.draw.ggsurvplot &lt;- function(x){
+  survminer:::print.ggsurvplot(x, newpage = FALSE)
+}
+
+caption1 &lt;- paste(strwrap(
+  &quot;Median PFS: 11.1 months
+  (95% CI: 9.1-14.2)
+  Events: 54/100&quot;, 25), collapse = &quot;\n&quot;
+  )
+
+pfs$plot &lt;- pfs$plot + annotate(
+  &quot;text&quot;, x = 5, y = 0.20,
+  label = caption1,
+  cex = 3, vjust = &quot;center&quot;, hjust = &quot;center&quot;, fontface = 20
+  )
+
+# ### Save plot ---------------------------------------------------------------
+ggsave(
+  &quot;output/ATractiB_Figure_PFS_2023-03-28.png&quot;,
+  pfs,
+  width = 24,
+  height = 12,
+  units = &quot;cm&quot;,
+  dpi = 300
+  )
+
+### Show plot --------------------------------------------------------------
+pfs</code></pre>
+<p><img src="figure/ATractiB_primary-endpoint_2023-03-27.Rmd/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>data06_final &lt;- data06_final %&gt;%
+    mutate(
+        eot_reason = case_when(
+            eot_reason == &quot;Progressive disease&quot; ~ &quot;Disease progression&quot;,
+            eot_reason == &quot;Active&quot; ~ &quot;Active&quot;,
+            eot_reason == &quot;Unacceptable toxicity/adverse event&quot; ~ &quot;Unacceptable toxicity/adverse event&quot;,
+            eot_reason == &quot;Patient withdrawals consent (fill “End of Study” form)&quot; ~ &quot;Patient&#39;s decision&quot;,
+            eot_reason == &quot;General or specific changes in the patient’s condition render the patient unacceptable for further treatment in the judgment of the Investigator&quot; ~ &quot;Worsening&quot;,
+            eot_reason == &quot;LUMORECTOMY&quot; ~ &quot;Patient submitted to surgery&quot;,
+            eot_reason == &quot;patient&#39;s decision&quot; ~ &quot;Patient&#39;s decision&quot;,
+            eot_reason == &quot;The patient is going to undergo radical surgical treatment. In addition, she presented toxicity that limits receiving immunotherapy as maintenance until surgery&quot; ~ &quot;Patient submitted to surgery&quot;,
+            eot_reason == &quot;The patient underwent a lumpectomy on November 9.&quot; ~ &quot;Patient submitted to surgery&quot;,
+            TRUE ~ NA_character_
+            )
+        )
+
+# Count how many patients there are in each &quot;eot_reason&quot; category and rank them from highest to lowest
+data06_final %&gt;%
+    group_by(eot_reason) %&gt;%
+    summarise(
+        n = n()
+        ) %&gt;%
+    arrange(desc(n))</code></pre>
+<pre><code># A tibble: 6 × 2
+  eot_reason                              n
+  &lt;chr&gt;                               &lt;int&gt;
+1 Disease progression                    52
+2 Active                                 32
+3 Unacceptable toxicity/adverse event     7
+4 Patient&#39;s decision                      4
+5 Patient submitted to surgery            3
+6 Worsening                               2</code></pre>
+<br>
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
+Session information
+</button>
+</p>
+<div id="workflowr-sessioninfo" class="collapse">
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 4.1.3 (2022-03-10)
+Platform: x86_64-apple-darwin17.0 (64-bit)
+Running under: macOS Big Sur/Monterey 10.16
+
+Matrix products: default
+BLAS:   /Library/Frameworks/R.framework/Versions/4.1/Resources/lib/libRblas.0.dylib
+LAPACK: /Library/Frameworks/R.framework/Versions/4.1/Resources/lib/libRlapack.dylib
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] survMisc_0.5.6  survminer_0.4.9 ggpubr_0.4.0    survival_3.5-0 
+ [5] here_1.0.1      lubridate_1.8.0 janitor_2.1.0   writexl_1.4.0  
+ [9] readxl_1.4.0    forcats_0.5.1   stringr_1.4.0   dplyr_1.0.9    
+[13] purrr_0.3.4     readr_2.1.2     tidyr_1.2.0     tibble_3.1.7   
+[17] ggplot2_3.4.0   tidyverse_1.3.1 workflowr_1.7.0
+
+loaded via a namespace (and not attached):
+ [1] ggtext_0.1.1      fs_1.5.2          httr_1.4.3        rprojroot_2.0.3  
+ [5] tools_4.1.3       backports_1.4.1   bslib_0.3.1       utf8_1.2.2       
+ [9] R6_2.5.1          DBI_1.1.2         colorspace_2.0-3  withr_2.5.0      
+[13] tidyselect_1.1.2  gridExtra_2.3     processx_3.5.3    compiler_4.1.3   
+[17] git2r_0.31.0      textshaping_0.3.6 cli_3.6.0         rvest_1.0.2      
+[21] xml2_1.3.3        labeling_0.4.2    sass_0.4.1        scales_1.2.0     
+[25] callr_3.7.0       systemfonts_1.0.4 digest_0.6.29     rmarkdown_2.14   
+[29] pkgconfig_2.0.3   htmltools_0.5.2   highr_0.9         dbplyr_2.1.1     
+[33] fastmap_1.1.0     rlang_1.0.6       rstudioapi_0.13   farver_2.1.0     
+[37] jquerylib_0.1.4   generics_0.1.2    zoo_1.8-10        jsonlite_1.8.0   
+[41] car_3.0-12        magrittr_2.0.3    Matrix_1.4-0      Rcpp_1.0.8.3     
+[45] munsell_0.5.0     fansi_1.0.3       abind_1.4-5       lifecycle_1.0.3  
+[49] stringi_1.7.6     whisker_0.4       yaml_2.3.5        snakecase_0.11.0 
+[53] carData_3.0-5     grid_4.1.3        promises_1.2.0.1  crayon_1.5.1     
+[57] lattice_0.20-45   haven_2.5.0       splines_4.1.3     gridtext_0.1.4   
+[61] hms_1.1.1         knitr_1.38        ps_1.7.0          pillar_1.7.0     
+[65] markdown_1.1      ggsignif_0.6.3    reprex_2.0.1      glue_1.6.2       
+[69] evaluate_0.15     getPass_0.2-2     data.table_1.14.2 modelr_0.1.8     
+[73] vctrs_0.5.1       tzdb_0.3.0        httpuv_1.6.5      cellranger_1.1.0 
+[77] gtable_0.3.0      km.ci_0.5-6       assertthat_0.2.1  xfun_0.30        
+[81] xtable_1.8-4      broom_1.0.2       rstatix_0.7.0     later_1.3.0      
+[85] ragg_1.2.5        KMsurv_0.1-5      ellipsis_0.3.2   </code></pre>
+</div>
+</div>
+
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+https://docs.mathjax.org/en/latest/web/configuration.html. This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
