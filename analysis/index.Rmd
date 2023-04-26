@@ -12,4 +12,4 @@ This is the index page of the online repository for the ATractiB study. Here is 
 
 * [QA of tumor assessments prior to ESMO 2023](WP1_QA_tumor-assessments_2023-04-18.html)
 
-* [Preliminary analysis of the primary endpoing (Progression-Free Survival; PFS)](WP2_primary-endpoint_2023-03-29.html)
+* [Preliminary analysis of the primary endpoint (Progression-Free Survival; PFS)](WP2_primary-endpoint_2023-03-29.html)
