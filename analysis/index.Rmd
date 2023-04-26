@@ -8,7 +8,7 @@ editor_options:
   chunk_output_type: console
 ---
 
-Work packages of the ATractiB study:
+This is the index page of the online repository for the ATractiB study. Here is a list of work packages:
 
 * [QA of tumor assessments prior to ESMO 2023](WP1_QA_tumor-assessments_2023-04-18.html)
 
