@@ -1,0 +1,400 @@
+---
+title: "ATractiB_primary-endpoint_2023-03-27"
+author: "Daniel Alcala"
+date: "2023-03-27"
+output: html_document
+---
+
+```{r setup, include = FALSE}
+# Load the following packages: tidyverse, readxl, and here
+library(tidyverse)
+library(readxl)
+library(writexl)
+library(janitor)
+library(lubridate)
+library(here)
+library(survival)
+library(survminer)
+library(survMisc)
+
+here("ATractiB_primary-endpoint_2023-03-27.Rmd")
+```
+
+To perform the estimation of Progression-Free Survival (PFS) we will need a dataframe with the following variables:
+ - patient: Unique identification code for each patient
+ - event: Binary variable indicating whether the patient experienced a PFS event (1) or not (0)
+ - time: Time in months from the first cycle of study treatment to the PFS event or the last follow-up visit
+
+Therefore, we will first generate a dataset with the list of patients included in the PFS analysis.
+
+We know that a total of n = 101 patients were enrolled in the study, although one of them (0119-005) was excluded from the analysis population. We will fetch the list of patients from the study treatment intake sheet ("ATRACTIB_Cycles_2023_03_27.xlsx") to also capture the date of treatment initiation (C1D1 date):
+
+# List of patients included in the analysis population
+
+```{r, include = FALSE}
+
+data01_cycles <- read_excel(
+    here("data/ATRACTIB_Cycles_2023_03_27.xlsx"),
+    skip = 1) %>% 
+    clean_names() %>%
+    select(
+      patient, visit_date
+      ) %>%
+    # Use lubridate::dmy() to convert the "visit_date" column to a date
+    mutate(
+      visit_date = dmy(visit_date)
+      ) %>%
+    rename(
+        c1d1_date = visit_date
+        ) %>%
+    filter(
+      patient != "0119-005"
+      ) %>% 
+    group_by(patient) %>% 
+    slice(
+      which.min(c1d1_date)
+      )
+
+# Assert that the total number of patients in the data01_cycles data frame is equal to 100
+stopifnot(length(unique(data01_cycles$patient)) == 100)
+```
+
+# PFS event coding
+
+To know if each patient has experienced a PFS event we need to look at the End of Treatment (EoT) and End of Study (EoS) pages. In the main analysis, a PFS event will include:
+- Radiological progression confirmed by RECIST v.1.1
+- Clinical progression according to the investigator
+- Death
+
+First, we will fetch and clean the data from the EoT page:
+
+```{r}
+data02_eot <- read_excel(
+  here("data/ATRACTIB_EoT - FU28_2023_03_27.xlsx"),
+  skip = 1) %>%
+  clean_names() %>%
+  select(
+    patient,
+    discontinuation_date,
+    main_reason_for_treatment_discontinuation,
+    other_discontinuation_reason,
+    disease_progression_confirmed_by_recist_v1_1_repeated_imaging_for_pd_confirmation_not_performed,
+    date_of_radiologial_progressive_disease,
+    date_of_biological_progressive_disease,
+    clinical_progression_in_accordance_to_investigator_criteria,
+    date_of_clinical_progressive_disease
+    ) %>%
+  rename(
+    eot_date = discontinuation_date,
+    eot_reason = main_reason_for_treatment_discontinuation,
+    eot_reason_other = other_discontinuation_reason,
+    eot_pd = disease_progression_confirmed_by_recist_v1_1_repeated_imaging_for_pd_confirmation_not_performed,
+    eot_radiologial_pd_date = date_of_radiologial_progressive_disease,
+    eot_biological_pd_date = date_of_biological_progressive_disease,
+    eot_clinical_pd = clinical_progression_in_accordance_to_investigator_criteria,
+    eot_clinical_pd_date = date_of_clinical_progressive_disease
+    ) %>%
+  mutate(
+    eot_date = dmy(eot_date),
+    eot_radiologial_pd_date = dmy(eot_radiologial_pd_date),
+    eot_biological_pd_date = dmy(eot_biological_pd_date),
+    eot_clinical_pd_date = dmy(eot_clinical_pd_date)
+    )
+
+# Count how many entries there are in the EoT page
+paste0("There are ", nrow(data02_eot), " patients in the EoT page")
+```
+
+Some patients have "Other" as the main reason for discontinuation of treatment and, in another column called "Other discontinuation reason", the reason is specified. Therefore, we need to condense this information into a single column, changing the value "Other" to the corresponding reason listed in the "Other discontinuation reason" column:
+
+```{r}         
+data02_eot <- data02_eot %>%
+  mutate(
+    eot_reason = if_else(eot_reason == "Other", eot_reason_other, eot_reason)
+    )
+
+# Check the frequency of each reason for discontinuation of treatment
+data02_eot %>% 
+    count(eot_reason, name = "n")
+```
+
+We will now create a new column called "eot_pd_date" that will contain the date of the first PFS event (radiological, biological or clinical disease progression) for each patient. If a patient has experienced more than one PFS event, the date of the first event will be used:
+
+```{r}
+data02_eot <- data02_eot %>%
+  mutate(
+    eot_pd_date = if_else(is.na(eot_radiologial_pd_date), eot_clinical_pd_date, eot_radiologial_pd_date)
+    ) %>%
+    mutate(
+        eot_pd = if_else(eot_reason == "Progressive disease", "Yes", eot_pd)
+    )
+```
+
+Those patients who have experienced disease progression should have discontinued study treatment at the date of progression.
+
+As a quality control, we will explore what difference there is between the dates in the end-of-treatment column and in the disease progression column:
+
+```{r}
+QC_eot_pd_dates <- data02_eot %>% 
+    filter(eot_pd == "Yes") %>% 
+    select(patient, eot_date, eot_pd_date) %>% 
+    # Calculate the difference in days between the EoT and PD dates
+    mutate(
+        eot_pd_date_diff = eot_date - eot_pd_date
+        )
+
+write_xlsx(QC_eot_pd_dates, here("data/ATractiB_QA_EoT-PD-dates_2023-03-28.xlsx"))
+
+hist <- QC_eot_pd_dates %>% 
+    ggplot(aes(x = eot_pd_date_diff)) +
+    geom_histogram(bins = 50) +
+    labs(
+        title = "Quality Control: Difference from EoT date to PD date",
+        x = "EoT date vs. PD date (days)",
+        y = "Number of patients"
+        ) +
+  theme_minimal()
+
+ggsave(
+  "output/ATractiB_QA_EoT-PD-dates_2023-03-28.png",
+  hist,
+  width = 20,
+  height = 12,
+  units = "cm",
+  dpi = 300
+  )
+```
+
+For the time being, we will take the date of disease progression for those patients who have it and, for the rest, the date of the end of treatment:
+
+```{r}
+data02_eot <- data02_eot %>%
+    mutate(
+        eot_date = if_else(!is.na(eot_pd_date), eot_pd_date, eot_date)
+        ) %>%
+    select(
+        patient, eot_date, eot_reason, eot_pd, eot_pd_date
+    )
+```
+
+We will then use the EoS data to capture those PFS event cases that have not been recorded in the EoT sheet:
+
+```{r}
+data03_eos <- read_excel(
+    here("data/ATRACTIB_End of Study_2023_03_27.xlsx"),
+    skip = 1) %>% 
+    clean_names() %>%
+    rename(
+        follow_up = has_the_patient_continued_the_follow_up_until_the_eo_s_date,
+        follow_up_reason = end_of_study_follow_up_main_reason,
+        death_reason = principal_cause_of_death,
+        eos_date = eo_s_date
+    ) %>%
+    select(-specify_other_reason_end_of_study) %>%
+    mutate(
+        eos_date = dmy(eos_date)
+    )
+
+data03_eos
+```
+
+We will combine the dataframes from the EoT and EoS pages to cross-reference both data sources and generate a single list of patients with a PFS event:
+
+```{r}
+data04_merged <- data01_cycles %>%
+    left_join(data02_eot, by = "patient") %>%
+    left_join(data03_eos, by = "patient")
+
+data04_merged <- data04_merged %>% 
+    # If there isn't an EoT date, record the EoS date instead
+    mutate(
+        eot_date = if_else(is.na(eot_date), eos_date, eot_date)
+        ) %>% 
+    # If there isn't a reason for EoT, record that patient as still "Active" in the study treatment or follow-up period
+    mutate(
+        eot_reason = if_else(is.na(eot_reason), "Active", eot_reason)
+        )
+```
+
+# Estimation of the time to PFS event
+
+Despite having the PFS event coding ready, we still need to do one more step before calculating the time to PFS event.
+
+For those patients currently active in the study (either in treatment or in follow-up), we need the date of the last tumour assessment to censor these patients:
+
+```{r}
+# Read the "TARGET" sheet from the "ATRACTIB_Tumor Assessment_2023_03_27.xlsx" Excel file, clean the column names, and store it in the "data05_last_ta" dataframe
+data05_last_ta <- read_excel(
+    here("data/ATRACTIB_Tumor Assessment_2023_03_27.xlsx"),
+    sheet = "TARGET",
+    skip = 1) %>% 
+    clean_names() %>%
+    select(
+      patient, evaluation_date
+    ) %>%
+    mutate(
+      evaluation_date = dmy(evaluation_date)
+    ) %>%
+    group_by(patient) %>%
+    filter(!is.na(evaluation_date)) %>%
+    summarise(
+      last_evaluation_date = max(evaluation_date)
+    )
+
+data06_final <- data04_merged %>%
+    left_join(data05_last_ta, by = "patient")
+
+data06_final <- data06_final %>%
+    mutate(
+        eot_date = if_else(eot_reason == "Active", last_evaluation_date, eot_date)
+        )
+```
+
+Now we have everything we need to calculate the time from the start of study medication to the PFS event or last available tumour assessment:
+
+```{r}        
+data06_final <- data06_final %>%
+    mutate(
+        Time = if_else(eot_reason == "Active", (last_evaluation_date - c1d1_date)/(365.25/12), (eot_date - c1d1_date)/(365.25/12)),
+        Time = as.numeric(Time)
+        ) %>%
+    mutate(
+        Event = if_else(
+            eot_reason == "Progressive disease" | death_reason == "clinical disease progression" | (eot_reason != "Progressive disease" & follow_up_reason == "Death"), 1, 0)
+        ) %>%
+    mutate(
+        Event = if_else(is.na(Event), 0, Event)
+        )
+
+write_xlsx(data06_final, here("output/ATractiB_preliminary__PFS_2023-03-28.xlsx"))
+```
+
+```{r}
+survfit(Surv(Time, Event) ~ 1, data = data06_final)
+```
+
+```{r}
+# This is a custom function to tinker aesthetic aspects of Kaplan-Meier plots
+customize_labels <- function (p, font.title = NULL,
+                              font.subtitle = NULL, font.caption = NULL,
+                              font.x = NULL, font.y = NULL, font.xtickslab = NULL, font.ytickslab = NULL)
+{
+  original.p <- p
+  if(is.ggplot(original.p)) list.plots <- list(original.p)
+  else if(is.list(original.p)) list.plots <- original.p
+  else stop("Can't handle an object of class ", class (original.p))
+  .set_font <- function(font){
+    font <- ggpubr:::.parse_font(font)
+    ggtext::element_markdown (size = font$size, face = font$face, colour = font$color)
+  }
+  for(i in 1:length(list.plots)){
+    p <- list.plots[[i]]
+    if(is.ggplot(p)){
+      if (!is.null(font.title)) p <- p + theme(plot.title = .set_font(font.title))
+      if (!is.null(font.subtitle)) p <- p + theme(plot.subtitle = .set_font(font.subtitle))
+      if (!is.null(font.caption)) p <- p + theme(plot.caption = .set_font(font.caption))
+      if (!is.null(font.x)) p <- p + theme(axis.title.x = .set_font(font.x))
+      if (!is.null(font.y)) p <- p + theme(axis.title.y = .set_font(font.y))
+      if (!is.null(font.xtickslab)) p <- p + theme(axis.text.x = .set_font(font.xtickslab))
+      if (!is.null(font.ytickslab)) p <- p + theme(axis.text.y = .set_font(font.ytickslab))
+      list.plots[[i]] <- p
+    }
+  }
+  if(is.ggplot(original.p)) list.plots[[1]]
+  else list.plots
+}
+```
+
+```{r}
+### Plot ----------------------------------------------------------------------
+pfs <- ggsurvplot(
+  fit = survfit(Surv(Time, Event) ~ 1, data = data06_final),
+  xlab = "Time since first dose of study treatment (months)", 
+  ylab = "Progression-Free Survival probability",
+  conf.int = TRUE,
+  conf.int.alpha = c(0.15),
+  xlim = c(0,22.9),
+  ylim = c(0,1.009),
+  censor.size = 5,
+  size = 1,
+  break.time.by = 3,
+  axes.offset = FALSE,
+  surv.scale = "percent",
+  break.y.by = 0.10,
+  risk.table = FALSE,
+  risk.table.col = "strata",
+  risk.table.y.text = TRUE,
+  risk.table.height = 0.25,
+  ggtheme = theme_classic(),
+  palette = "#000000",
+  surv.median.line = "hv",
+  legend.labs = "Group B",
+  legend.title = ""
+)
+
+### Modify theme --------------------------------------------------------------
+pfs <- customize_labels(
+  pfs,
+  font.title     = c(14, "bold",  "#0a0908"),
+  font.caption   = c(12, "plain", "#0a0908"),
+  font.x         = c(14, "bold",  "#0a0908"),          
+  font.y         = c(14, "bold",  "#0a0908"),      
+  font.xtickslab = c(10, "plain", "#0a0908"),
+  font.ytickslab = c(10, "plain", "#0a0908")
+)
+
+grid.draw.ggsurvplot <- function(x){
+  survminer:::print.ggsurvplot(x, newpage = FALSE)
+}
+
+caption1 <- paste(strwrap(
+  "Median PFS: 11.1 months
+  (95% CI: 9.1-14.2)
+  Events: 54/100", 25), collapse = "\n"
+  )
+
+pfs$plot <- pfs$plot + annotate(
+  "text", x = 5, y = 0.20,
+  label = caption1,
+  cex = 3, vjust = "center", hjust = "center", fontface = 20
+  )
+
+# ### Save plot ---------------------------------------------------------------
+ggsave(
+  "output/ATractiB_Figure_PFS_2023-03-28.png",
+  pfs,
+  width = 24,
+  height = 12,
+  units = "cm",
+  dpi = 300
+  )
+
+### Show plot --------------------------------------------------------------
+pfs
+```
+
+```{r}
+data06_final <- data06_final %>%
+    mutate(
+        eot_reason = case_when(
+            eot_reason == "Progressive disease" ~ "Disease progression",
+            eot_reason == "Active" ~ "Active",
+            eot_reason == "Unacceptable toxicity/adverse event" ~ "Unacceptable toxicity/adverse event",
+            eot_reason == "Patient withdrawals consent (fill “End of Study” form)" ~ "Patient's decision",
+            eot_reason == "General or specific changes in the patient’s condition render the patient unacceptable for further treatment in the judgment of the Investigator" ~ "Worsening",
+            eot_reason == "LUMORECTOMY" ~ "Patient submitted to surgery",
+            eot_reason == "patient's decision" ~ "Patient's decision",
+            eot_reason == "The patient is going to undergo radical surgical treatment. In addition, she presented toxicity that limits receiving immunotherapy as maintenance until surgery" ~ "Patient submitted to surgery",
+            eot_reason == "The patient underwent a lumpectomy on November 9." ~ "Patient submitted to surgery",
+            TRUE ~ NA_character_
+            )
+        )
+
+# Count how many patients there are in each "eot_reason" category and rank them from highest to lowest
+data06_final %>%
+    group_by(eot_reason) %>%
+    summarise(
+        n = n()
+        ) %>%
+    arrange(desc(n))
+```
