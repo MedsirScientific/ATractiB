@@ -11,3 +11,5 @@ editor_options:
 Work packages of the ATractiB study:
 
 * [QA of tumor assessments prior to ESMO 2023](WP1_QA_tumor-assessments_2023-04-18.html)
+
+* [Preliminary analysis of the primary endpoing (Progression-Free Survival; PFS)](WP2_primary-endpoint_2023-03-29.html)
