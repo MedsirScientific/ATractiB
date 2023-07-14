@@ -467,14 +467,14 @@ swimmer_spider_plot <- function(site, comment, name) {
     y = "Patient"
   )
 
-  ggsave(
-    paste("output/swimmer-spider-plot/materials/ATractiB_site-", as.character({{site}}), "_swimmer_TAs_2023-04-18.png", sep = ""),
-    swimmer_ta,
-    width = 24,
-    height = 120,
-    units = "cm",
-    dpi = 300
-    )
+  # ggsave(
+  #   paste("output/swimmer-spider-plot/materials/ATractiB_site-", as.character({{site}}), "_swimmer_TAs_2023-04-18.png", sep = ""),
+  #   swimmer_ta,
+  #   width = 24,
+  #   height = 120,
+  #   units = "cm",
+  #   dpi = 300
+  #   )
   
   spider_ta <- data_05_or_recist %>% 
   filter(
@@ -547,14 +547,14 @@ swimmer_spider_plot <- function(site, comment, name) {
 
   spider_ta <- spider_ta + scale_shape(na.translate = FALSE)
   
-  ggsave(
-    paste("output/swimmer-spider-plot/materials/ATractiB_site-", as.character({{site}}), "_spider_TAs_2023-04-18.png", sep = ""),
-    spider_ta,
-    width = 30,
-    height = 12,
-    units = "cm",
-    dpi = 300
-    )
+  # ggsave(
+  #   paste("output/swimmer-spider-plot/materials/ATractiB_site-", as.character({{site}}), "_spider_TAs_2023-04-18.png", sep = ""),
+  #   spider_ta,
+  #   width = 30,
+  #   height = 12,
+  #   units = "cm",
+  #   dpi = 300
+  #   )
 
   spider_ta <- spider_ta +
     annotate("rect", xmin = 0, xmax = 10, ymin = -30, ymax = -100,
@@ -599,14 +599,14 @@ swimmer_spider_plot <- function(site, comment, name) {
     size = 8
   )
   
-  ggsave(
-    paste("output/swimmer-spider-plot/ATractiB_site-", as.character({{site}}), "_TAs_2023-04-18.png", sep = ""),
-    combined_ta,
-    width = 30,
-    height = 15,
-    units = "cm",
-    dpi = 300
-    )
+  # ggsave(
+  #   paste("output/swimmer-spider-plot/ATractiB_site-", as.character({{site}}), "_TAs_2023-04-18.png", sep = ""),
+  #   combined_ta,
+  #   width = 30,
+  #   height = 15,
+  #   units = "cm",
+  #   dpi = 300
+  #   )
 }
 ```
 
